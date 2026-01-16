@@ -1,0 +1,8 @@
+State,Unvaccinated,Unknown,Unknown or unvaccinated,At least one dose,Source,County,County Coverage,State Coverage
+Arizona,170.72,0,170.72,5.28,https://www.azdhs.gov/preparedness/epidemiology-disease-control/measles/index.php,Mohave,0.76,0.886
+Michigan,24,3,27,2,https://www.michigan.gov/mdhhs/adult-child-serv/childrenfamilies/immunizations/measlesupdates,Osceola,0.8623,0.916
+New Mexico,57,28,85,15,https://www.nmhealth.org/about/erd/ideb/mog/,Lea,0.95,0.948
+North Dakota,36,0,36,0,https://www.hhs.nd.gov/immunizations/measles,Williams,0.8346,0.9
+South Carolina,119,3,122,4,https://dph.sc.gov/news/friday-measles-update-dph-reports-15-new-measles-cases-upstate-bringing-outbreak-total-126-11,Spartanburg,0.912,0.912
+Texas,,,718,44,https://www.dshs.texas.gov/news-alerts/measles-outbreak-2025,Gaines,0.81967213,0.932
+Utah,108,0,108,7,https://epi.utah.gov/measles-response/,Washington (Southwest Utah),0.895,0.886
