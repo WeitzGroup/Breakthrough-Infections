@@ -10,7 +10,7 @@ Code and data to accompany "Anticipating and Interpreting Breakthrough Infection
 Breakthrough-Infections/
 ├── data/
 │   ├── input/                      # Raw input data
-│   │   ├── school-reports/         # School-level vaccination data
+│   │   ├── school-reports/         # School-level vaccination data (NOT INCLUDED)
 │   │   ├── mmr_data_us_counties.csv
 │   │   └── recent-outbreaks.csv
 │   └── generated/                  # ODE simulation outputs
@@ -31,11 +31,36 @@ Breakthrough-Infections/
 │       └── SIR_vaccinated_assortativity.m
 ├── output/
 │   ├── figures/                    # Generated PDF figures
-│   └── tables/                     # Generated CSV/TXT tables
+│   └── tables/                     # Generated CSV/TXT tables (NOT INCLUDED)
 ├── notebooks/
 │   └── TwoDoseModel.ipynb
 └── README.md
 ```
+
+---
+
+## Data Availability
+
+### Public Data (Included)
+- `data/input/mmr_data_us_counties.csv` - County-level MMR vaccination data
+- `data/input/recent-outbreaks.csv` - Recent outbreak data
+- `data/generated/` - ODE simulation outputs (can be regenerated)
+
+### Restricted Data (Not Included)
+- `data/input/school-reports/` - School-level vaccination data from state health departments
+  - This data is not publicly redistributable due to privacy/licensing restrictions
+  - Contact the authors for data access or obtain directly from state health departments
+- `output/tables/` - Contains intermediate results derived from restricted school data
+
+### Running Without School Data
+If you don't have access to school-level data:
+1. Skip Step 1 (`assortativity_estim.R`)
+2. The MATLAB scripts will use default phi values automatically
+3. Or manually create `output/tables/phi_estimates.csv` with your own estimates:
+   ```csv
+   "phi_mean","phi_lower","phi_upper"
+   0.39,0.27,0.60
+   ```
 
 ---
 
