@@ -10,7 +10,7 @@ Code and data to accompany "Anticipating and Interpreting Breakthrough Infection
 Breakthrough-Infections/
 ├── data/
 │   ├── input/                      # Raw input data
-│   │   ├── school-reports/         # School-level vaccination data (NOT INCLUDED)
+│   │   ├── school-reports/         # School-level vaccination data (included for select states)
 │   │   ├── mmr_data_us_counties.csv
 │   │   └── recent-outbreaks.csv
 │   └── generated/                  # ODE simulation outputs
@@ -46,11 +46,12 @@ Breakthrough-Infections/
 - `data/input/mmr_data_us_counties.csv` - County-level MMR vaccination data
 - `data/input/recent-outbreaks.csv` - Recent outbreak data
 - `data/generated/` - ODE simulation outputs (can be regenerated)
+- `data/input/school-reports/` - School-level vaccination data from state health departments where publicly available: CA,CO, MD, MN, NC, and WA
 
 ### Restricted Data (Not Included)
-- `data/input/school-reports/` - School-level vaccination data from state health departments
+- `data/input/school-reports/` - School-level vaccination data from state health departments in IA, KY, MA, MI, MO, ND, NY, OR, SC, and UT
   - This data is not publicly redistributable due to privacy/licensing restrictions
-  - Contact the authors for data access or obtain directly from state health departments
+  - Contact the authors for data access information or obtain directly from state health departments
 - `output/tables/` - Contains intermediate results derived from restricted school data
 
 ### Running Without School Data
