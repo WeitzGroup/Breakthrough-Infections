@@ -69,23 +69,27 @@ If you don't have access to school-level data:
 
 ### R Requirements
 
-**R Version:** 4.2.0 or higher recommended
+**R Version:** 4.2.3
 
 **Required Packages:**
-- tidyverse (data manipulation)
-- readxl (Excel files)
-- magrittr (pipe operators)
-- cowplot (plot composition)
-- usmap (US map visualization)
-- latex2exp (LaTeX in plots)
-- ggrepel (text labels)
-- viridis (color palettes)
-- scales (scale functions)
-- ggridges (ridge plots)
-- knitr, kableExtra (tables)
-- deSolve (ODE solvers)
-- ggh4x (extended facets)
-- ggmagnify (plot insets)
+| Package | Version | Description |
+|---------|---------|-------------|
+| tidyverse | 2.0.0 | Data manipulation and visualization |
+| readxl | 1.4.5 | Excel file reading |
+| magrittr | 2.0.4 | Pipe operators |
+| cowplot | 1.1.1 | Plot composition |
+| usmap | 0.6.4 | US map visualization |
+| latex2exp | 0.9.8 | LaTeX expressions in plots |
+| ggrepel | 0.9.6 | Non-overlapping text labels |
+| viridis | 0.6.5 | Color palettes |
+| scales | 1.4.0 | Scale functions |
+| ggridges | 0.5.7 | Ridge plots |
+| knitr | 1.51 | Report generation |
+| kableExtra | 1.4.0 | Table formatting |
+| deSolve | 1.40 | ODE solvers |
+| ggh4x | 0.2.8 | Extended ggplot2 facets |
+| ggmagnify | 0.4.2 | Plot insets/magnification |
+| stringr | 1.5.1 | String manipulation |
 
 **Installation:**
 ```r
@@ -106,10 +110,11 @@ install.packages("ggmagnify",
 **Troubleshooting:**
 - ggh4x errors: `remotes::install_version("ggh4x", version = "0.2.8")`
 - usmap errors: install sf first with `install.packages("sf")`
+- For exact version reproducibility: use `renv` or install specific versions with `remotes::install_version()`
 
 ### MATLAB Requirements
 
-**MATLAB Version:** R2020a or higher
+**MATLAB Version:** R2024a
 
 **Required Toolboxes:**
 - Parallel Computing Toolbox (for parpool/parfor)
