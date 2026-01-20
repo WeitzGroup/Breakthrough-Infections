@@ -2,8 +2,10 @@
 scripts/matlab/*.mat
 scripts/matlab/main_*.csv
 scripts/matlab/diffdisease_*.csv
+scripts/matlab/lowphi_*.csv
 
 # Unpublic files (school-level data not for public release)
+data/input/test-school-reports/
 data/input/school-reports/
 output/tables/
 

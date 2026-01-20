@@ -25,8 +25,9 @@ Breakthrough-Infections/
 │   │   ├── supplemental_figs.R     # Supplemental figures
 │   │   └── 2-dose.R                # Two-dose model
 │   └── matlab/                     # MATLAB ODE solvers
-│       ├── main.m                  # Main ODE simulation
-│       ├── diffdisease.m           # Different disease params
+│       ├── main.m                  # Main ODE simulation -> ode_out.csv
+│       ├── diffdisease.m           # Different disease params -> diffdisease-ode-output.csv
+│       ├── lowphi.m                # Low assortativity sims -> lowphi-*.csv
 │       ├── model_parameters.m
 │       └── SIR_vaccinated_assortativity.m
 ├── output/
@@ -138,8 +139,9 @@ source("assortativity_estim.R")
 ### Step 2: Run ODE Simulations (MATLAB)
 ```matlab
 cd scripts/matlab
-main        % -> automatically saves to data/generated/ode_out.csv
-diffdisease % -> automatically saves to data/generated/diffdisease-ode-output.csv
+main        % -> data/generated/ode_out.csv
+diffdisease % -> data/generated/diffdisease-ode-output.csv
+lowphi      % -> data/generated/lowphi-ode-output.csv, lowphi-inset-ode-output.csv
 ```
 (Timestamped backups are also saved in scripts/matlab/ for reproducibility)
 
@@ -159,12 +161,12 @@ source("2-dose.R")
 assortativity_estim.R -> phi_estimates.csv
                               |
         +---------------------+---------------------+
-        v                                           v
-    main.m                                    diffdisease.m
-        |                                           |
-        v                                           v
-  ode_out.csv                          diffdisease-ode-output.csv
-        |                                           |
+        v                     v                     v
+    main.m              diffdisease.m          lowphi.m
+        |                     |                     |
+        v                     v                     v
+  ode_out.csv     diffdisease-ode-output.csv   lowphi-*.csv
+        |                     |                     |
         +---------------------+---------------------+
                               v
               main_ode_plots.R + supplemental_figs.R
