@@ -1,33 +1,188 @@
 # Breakthrough Infections
 
-Code and data to accompany "Anticipating and Interpreting Breakthrough Infections Amid Expanded Vaccine Refusal" bv Mallory J Harris, Akash Arani, Tapan Goel, Kejia Zhang, Stephen J Beckett, Nathan C Lo, Jonathan Dushoff, and Joshua S Weitz.
+Code and data to accompany "Anticipating and Interpreting Breakthrough Infections Amid Expanded Vaccine Refusal" by Mallory J Harris, Akash Arani, Tapan Goel, Kejia Zhang, Stephen J Beckett, Nathan C Lo, Jonathan Dushoff, and Joshua S Weitz.
 
+---
 
+## Project Structure
 
-Analyses and figures are generated using the scripts main\_ode\_plots.R (main text figures 1, 2, and 4); assortativity\_estim.R (main text figure 3 and supplemental table and figure involving estimated assortativity); and supplemental\_figs.R (all other supplemental analyses except for the two-dose model); TwoDoseModel.ipynb (the two-dose model)
+```
+Breakthrough-Infections/
+├── data/
+│   ├── input/                      # Raw input data
+│   │   ├── school-reports/         # School-level vaccination data (NOT INCLUDED)
+│   │   ├── mmr_data_us_counties.csv
+│   │   └── recent-outbreaks.csv
+│   └── generated/                  # ODE simulation outputs
+│       ├── ode_out.csv
+│       ├── diffdisease-ode-output.csv
+│       └── lowphi-*.csv
+├── scripts/
+│   ├── R/                          # R analysis scripts
+│   │   ├── install_packages.R      # Package installation
+│   │   ├── assortativity_estim.R   # Figure 3, phi estimation
+│   │   ├── main_ode_plots.R        # Figures 1, 2, 4
+│   │   ├── supplemental_figs.R     # Supplemental figures
+│   │   └── 2-dose.R                # Two-dose model
+│   └── matlab/                     # MATLAB ODE solvers
+│       ├── main.m                  # Main ODE simulation -> ode_out.csv
+│       ├── diffdisease.m           # Different disease params -> diffdisease-ode-output.csv
+│       ├── lowphi.m                # Low assortativity sims -> lowphi-*.csv
+│       ├── model_parameters.m
+│       └── SIR_vaccinated_assortativity.m
+├── output/
+│   ├── figures/                    # Generated PDF figures
+│   └── tables/                     # Generated CSV/TXT tables (NOT INCLUDED)
+├── notebooks/
+│   └── TwoDoseModel.ipynb
+└── README.md
+```
 
+---
 
+## Data Availability
 
-The folder ode\_runs contains MATLAB scripts and output .csv files for solving the ODE. Scripts are: model\_parameters.m (stores parameters relevant for measles and MMR), SIR\_vaccinated\_assortativity.m (differential equations for the model), Figure4.m (generates ode\_output) FigureS4.m (generates diffdisease-ode-output. Workspace .mat files and output .csv files are also included.
+### Public Data (Included)
+- `data/input/mmr_data_us_counties.csv` - County-level MMR vaccination data
+- `data/input/recent-outbreaks.csv` - Recent outbreak data
+- `data/generated/` - ODE simulation outputs (can be regenerated)
 
+### Restricted Data (Not Included)
+- `data/input/school-reports/` - School-level vaccination data from state health departments
+  - This data is not publicly redistributable due to privacy/licensing restrictions
+  - Contact the authors for data access or obtain directly from state health departments
+- `output/tables/` - Contains intermediate results derived from restricted school data
 
+### Running Without School Data
+If you don't have access to school-level data:
+1. Skip Step 1 (`assortativity_estim.R`)
+2. The MATLAB scripts will use default phi values automatically
+3. Or manually create `output/tables/phi_estimates.csv` with your own estimates:
+   ```csv
+   "phi_mean","phi_lower","phi_upper"
+   0.39,0.27,0.60
+   ```
 
-The school-reports folder contains school-level vaccine data for six states that provide such data publicly online (MD, MN, NC, WA, CA, CO). Files are provided as downloaded, with either all years in a single csv or each year separately as an Excel or csv file. Figure 3 may still be generated using assortativity\_estim.R using the intermediate file estim\_assort\_df.csv
+---
 
+## Environment Setup
 
+### R Requirements
 
-Output figures and the table of trends in estimated assortativity are in the file figs.
+**R Version:** 4.2.3
 
+**Required Packages:**
+| Package | Version | Description |
+|---------|---------|-------------|
+| tidyverse | 2.0.0 | Data manipulation and visualization |
+| readxl | 1.4.5 | Excel file reading |
+| magrittr | 2.0.4 | Pipe operators |
+| cowplot | 1.1.1 | Plot composition |
+| usmap | 0.6.4 | US map visualization |
+| latex2exp | 0.9.8 | LaTeX expressions in plots |
+| ggrepel | 0.9.6 | Non-overlapping text labels |
+| viridis | 0.6.5 | Color palettes |
+| scales | 1.4.0 | Scale functions |
+| ggridges | 0.5.7 | Ridge plots |
+| knitr | 1.51 | Report generation |
+| kableExtra | 1.4.0 | Table formatting |
+| deSolve | 1.40 | ODE solvers |
+| ggh4x | 0.2.8 | Extended ggplot2 facets |
+| ggmagnify | 0.4.2 | Plot insets/magnification |
+| stringr | 1.5.1 | String manipulation |
 
+**Installation:**
+```r
+# Run the installation script
+source("scripts/R/install_packages.R")
 
-All other data inputs and intermediate files are available in the main folder and described below in alphabetical order.
+# Or manually:
+install.packages(c("tidyverse", "readxl", "magrittr", "cowplot", 
+  "usmap", "latex2exp", "ggrepel", "viridis", "scales", 
+  "ggridges", "knitr", "kableExtra", "deSolve", "ggh4x"))
 
-* diffdisease-ode-output.csv: output of ODE solver for varying assortativity and coverage, plus additional R0 (4 or 15) and vaccine failure rate (0.03, .2) scenarios (used by supplemental\_figs.R to generate supp-fv and supp-Iv)
-* estim\_assort\_df.csv: an intermediate file from assortativity estim with the estimated assortativity for each school x year (estim\_phi) and 1000 bootstrapped estimates (resampled\_estim). This is used later in the assortativity\_estim to generate figure 3.
-* lowphi-inset-ode-output.csv: output of ODE solver for low values of assortativity (phi = 0.1, .01, .001, .0001) and high coverage (used to increase resolution for inset of supp-lowphiHIT,generated by supplemental\_figs.R)
-* lowphi-ode-output.csv: output of ODE solver for low values of assortativity (phi = 0.1, .01, .001, .0001) and coverage from 0 to 1 (used to make main figure for supp-lowphiHIT,generated by supplemental\_figs.R)
-* ode\_out.csv: output of ODE solver for measles-consistent parameters varying assortativity and coverage. Used by main\_ode\_plots.R to make main figure 1, 2, and 4.
-* recent-outbreaks.csv: table of data collected from state health department measles outbreak dashboard on December 15, 2025. Used by main\_ode\_plots.R for main figure 1.
+# ggmagnify (special repo)
+install.packages("ggmagnify", 
+  repos = c("https://hughjonesd.r-universe.dev", 
+            "https://cloud.r-project.org"))
+```
 
+**Troubleshooting:**
+- ggh4x errors: `remotes::install_version("ggh4x", version = "0.2.8")`
+- usmap errors: install sf first with `install.packages("sf")`
+- For exact version reproducibility: use `renv` or install specific versions with `remotes::install_version()`
 
+### MATLAB Requirements
 
+**MATLAB Version:** R2024a
+
+**Required Toolboxes:**
+- Parallel Computing Toolbox (for parpool/parfor)
+- *Optional: modify scripts to use regular for loops*
+
+**Check installation:**
+```matlab
+license('test', 'Distrib_Computing_Toolbox')  % Returns 1 if available
+ver  % List all toolboxes
+```
+
+**Without Parallel Toolbox:** Edit main.m and diffdisease.m:
+1. Comment out: poolobj = parpool(8);
+2. Change: parfor -> for
+3. Comment out: delete(poolobj);
+
+---
+
+## Running the Analysis
+
+### Step 1: Estimate Assortativity (R)
+```r
+setwd("scripts/R")
+source("assortativity_estim.R")
+```
+
+### Step 2: Run ODE Simulations (MATLAB)
+```matlab
+cd scripts/matlab
+main        % -> data/generated/ode_out.csv
+diffdisease % -> data/generated/diffdisease-ode-output.csv
+lowphi      % -> data/generated/lowphi-ode-output.csv, lowphi-inset-ode-output.csv
+```
+(Timestamped backups are also saved in scripts/matlab/ for reproducibility)
+
+### Step 3: Generate Figures (R)
+```r
+setwd("scripts/R")
+source("main_ode_plots.R")
+source("supplemental_figs.R")
+source("2-dose.R")
+```
+
+---
+
+## Data Flow
+
+```
+assortativity_estim.R -> phi_estimates.csv
+                              |
+        +---------------------+---------------------+
+        v                     v                     v
+    main.m              diffdisease.m          lowphi.m
+        |                     |                     |
+        v                     v                     v
+  ode_out.csv     diffdisease-ode-output.csv   lowphi-*.csv
+        |                     |                     |
+        +---------------------+---------------------+
+                              v
+              main_ode_plots.R + supplemental_figs.R
+                              |
+                              v
+                      output/figures/*.pdf
+```
+
+---
+
+## Citation
+
+Harris MJ, Arani A, Goel T, Zhang K, Beckett SJ, Lo NC, Dushoff J, Weitz JS. 
+"Anticipating and Interpreting Breakthrough Infections Amid Expanded Vaccine Refusal"
