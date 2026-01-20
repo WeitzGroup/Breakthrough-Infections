@@ -1,0 +1,22 @@
+# MATLAB generated files (timestamped backups)
+scripts/matlab/*.mat
+scripts/matlab/main_*.csv
+scripts/matlab/diffdisease_*.csv
+
+# Unpublic files (school-level data not for public release)
+data/input/school-reports/
+output/tables/
+
+# R session files
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*~
