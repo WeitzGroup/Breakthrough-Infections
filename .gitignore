@@ -1,5 +1,6 @@
-# MATLAB generated files (timestamped backups)
+# MATLAB generated files (timestamped backups and autosaves)
 scripts/matlab/*.mat
+scripts/matlab/*.asv
 scripts/matlab/main_*.csv
 scripts/matlab/diffdisease_*.csv
 scripts/matlab/lowphi_*.csv
