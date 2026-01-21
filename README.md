@@ -1,6 +1,6 @@
 # Breakthrough Infections
 
-Code and data to accompany "Anticipating and Interpreting Breakthrough Infections Amid Expanded Vaccine Refusal" by Mallory J Harris, Akash Arani, Tapan Goel, Kejia Zhang, Stephen J Beckett, Nathan C Lo, Jonathan Dushoff, and Joshua S Weitz.
+Code and data to accompany "Interpreting Breakthrough Infections Given Assortative Mixing of Partially Vaccinated Populations" by Mallory J Harris, Akash Arani, Tapan Goel, Kejia Zhang, Stephen J Beckett, Nathan C Lo, Jonathan Dushoff, and Joshua S Weitz.
 
 ---
 
