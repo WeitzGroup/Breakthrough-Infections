@@ -108,12 +108,13 @@ dev.off()
 # supplemental figure - herd immunity threshold with mild assortativity
 
 # read in and combine two dataframes here (inset gives smaller steps in coverage at high values)
+# Use round(phi, 4) to preserve small phi values like 0.0001, 0.001
 lowphi_df <- read.csv("../../data/generated/lowphi-ode-output.csv") %>% 
               data.frame() %>%
-              mutate(phi = round(phi, 2))
+              mutate(phi = round(phi, 4))
 lowphi_df <- read.csv("../../data/generated/lowphi-inset-ode-output.csv") %>% 
               data.frame() %>%
-              mutate(phi = round(phi, 2)) %>%
+              mutate(phi = round(phi, 4)) %>%
               rbind(lowphi_df)
 
 

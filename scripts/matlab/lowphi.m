@@ -13,7 +13,8 @@ clear all; close all;
 R0 = 15;
 
 % Low PHI values (for exploring behavior near HIT)
-PHI = [1e-04, 0.001, 0.01, 0.1];
+% Include phi=0 as baseline (no assortativity)
+PHI = [0, 0.0001, 0.001, 0.01];
 fprintf('Low PHI values: %s\n', mat2str(PHI, 4));
 
 % Range of vaccine coverage values (standard grid)
@@ -51,8 +52,9 @@ parfor ii = 1:length(P_main)*length(PHI)
 
     y0 = [N_U - I_U; N_V - I_V; I_U; I_V; R_U; R_V];
 
-    % Solve ODE system
-    [t,trajectory] = ode23t(@(t,y)SIR_vaccinated_assortativity(t,y,Params),[0 Tf],y0, odeset("NonNegative",1:6,"RelTol",1e-8));
+    % Solve ODE system with tight tolerances to avoid numerical noise
+    opts = odeset("NonNegative",1:6,"RelTol",1e-10,"AbsTol",1e-12);
+    [t,trajectory] = ode23t(@(t,y)SIR_vaccinated_assortativity(t,y,Params),[0 Tf],y0, opts);
 
     y = trajectory(end,:);
     TotalPopulation  = sum(y);
@@ -61,6 +63,9 @@ parfor ii = 1:length(P_main)*length(PHI)
     else
         incidence_u = (Params.gamma+Params.m)*y(3)*365*1e5/TotalPopulation;
         incidence_v = (Params.gamma+Params.m)*y(4)*365*1e5/TotalPopulation;
+        % Set very small incidence values to 0 to avoid numerical noise
+        if incidence_u < 1e-6, incidence_u = 0; end
+        if incidence_v < 1e-6, incidence_v = 0; end
         SteadyStates_main{ii,:} = [R0 Params.vareps Params.p Params.phi y y(4)/(y(4)+y(3)) incidence_u incidence_v];
     end
 end
@@ -90,8 +95,9 @@ parfor ii = 1:length(P_inset)*length(PHI)
 
     y0 = [N_U - I_U; N_V - I_V; I_U; I_V; R_U; R_V];
 
-    % Solve ODE system
-    [t,trajectory] = ode23t(@(t,y)SIR_vaccinated_assortativity(t,y,Params),[0 Tf],y0, odeset("NonNegative",1:6,"RelTol",1e-8));
+    % Solve ODE system with tight tolerances to avoid numerical noise
+    opts = odeset("NonNegative",1:6,"RelTol",1e-10,"AbsTol",1e-12);
+    [t,trajectory] = ode23t(@(t,y)SIR_vaccinated_assortativity(t,y,Params),[0 Tf],y0, opts);
 
     y = trajectory(end,:);
     TotalPopulation  = sum(y);
@@ -100,6 +106,9 @@ parfor ii = 1:length(P_inset)*length(PHI)
     else
         incidence_u = (Params.gamma+Params.m)*y(3)*365*1e5/TotalPopulation;
         incidence_v = (Params.gamma+Params.m)*y(4)*365*1e5/TotalPopulation;
+        % Set very small incidence values to 0 to avoid numerical noise
+        if incidence_u < 1e-6, incidence_u = 0; end
+        if incidence_v < 1e-6, incidence_v = 0; end
         SteadyStates_inset{ii,:} = [R0 Params.vareps Params.p Params.phi y y(4)/(y(4)+y(3)) incidence_u incidence_v];
     end
 end
