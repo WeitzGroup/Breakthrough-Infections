@@ -9,7 +9,6 @@ scripts/matlab/lowphi_*.csv
 data/input/test-school-reports/
 data/input/school-reports/
 
-
 # R session files
 .Rhistory
 .RData

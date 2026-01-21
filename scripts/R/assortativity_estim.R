@@ -320,7 +320,6 @@ assort_df <- lapply(dir("../../data/input/school-reports/WA/", full.names=TRUE),
 write.csv(assort_df, file="../../output/tables/estim_assort_df.csv", row.names=FALSE)
  
 
-
 # Output plots and table ------------------------------------------------------------        
 assort_df <- read.csv("../../output/tables/estim_assort_df.csv") %>%
   group_by(year, state) %>%
