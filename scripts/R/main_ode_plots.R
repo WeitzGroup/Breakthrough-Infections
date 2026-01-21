@@ -101,13 +101,13 @@ p1a <- ggplot()+
   # uncertainty
   geom_linerange(data=outbreak_df, aes(x=infer_p, ymin=-Inf, ymax=fv_mid), alpha=.8, lty="dashed")+
   # state labels
-  geom_text(data=outbreak_df %>% filter(Abb %in% c("ND", "SC")), aes(x=infer_p, y=fv_mid, label=Abb), nudge_y=.015, nudge_x=.02)+
-  geom_text(data=outbreak_df %>% filter(Abb=="AZ"), aes(x=infer_p, y=fv_mid, label=Abb), nudge_y=.015, nudge_x=-.02)+
-  geom_text(data=outbreak_df %>% filter(infer_p >= .55), aes(x=infer_p, y=fv_mid, label=Abb), nudge_y=.015, nudge_x=-.03)+
+  geom_text(data=outbreak_df %>% filter(Abb %in% c("ND", "SC")), aes(x=infer_p, y=fv_mid, label=Abb), nudge_y=.02, nudge_x=.03, size=7)+
+  geom_text(data=outbreak_df %>% filter(Abb %in% c("AZ", "UT", "NM")), aes(x=infer_p, y=fv_mid, label=Abb), nudge_y=.015, nudge_x=-.06, size=7)+
+  geom_text(data=outbreak_df %>% filter(Abb %in% c("MI", "TX")), aes(x=infer_p, y=fv_mid, label=Abb), nudge_y=.015, nudge_x=-.035, size=7)+
   # set limits, labels, and theme
   scale_x_continuous(limits=range(c(-.02,1.1)), expand=c(0,0))+
   scale_y_continuous(limits=range(c(-.01,.43)), expand=c(0,0))+
-  theme_classic(base_size=20,)+
+  theme_classic(base_size=20)+
   theme(legend.position="none",
         plot.margin = margin(t = 20, r = 5, b = 10, l = 5, unit = "pt"))+
   ylab(expression(paste("Breakthrough fraction (", italic(f[V]), ")")))+
@@ -120,9 +120,9 @@ p1b <- ggplot()+
   geom_point(data=outbreak_df, aes(x=infer_p, y=Coverage, shape=Abb), size=3)+
   geom_segment(data=outbreak_df, aes(x=infer_p_lower, xend=infer_p_upper, y=Coverage))+
   # state labels
-  geom_text(data=outbreak_df %>% filter(!Abb%in%c("ND", "AZ")), aes(x=infer_p, y=Coverage, label=Abb), nudge_y=.03)+
-  geom_text(data=outbreak_df %>% filter(Abb=="ND"), aes(x=infer_p, y=Coverage, label=Abb), nudge_y=.03, nudge_x=.01)+
-  geom_text(data=outbreak_df %>% filter(Abb=="AZ"), aes(x=infer_p, y=Coverage, label=Abb), nudge_y=-.03)+
+  geom_text(data=outbreak_df %>% filter(!Abb %in% c("ND", "AZ", "UT", "TX")), aes(x=infer_p, y=Coverage, label=Abb), nudge_y=.05, size=7)+
+  geom_text(data=outbreak_df %>% filter(Abb=="ND"), aes(x=infer_p, y=Coverage, label=Abb), nudge_y=.04, nudge_x=.03, size=7)+
+  geom_text(data=outbreak_df %>% filter(Abb %in% c("AZ", "UT", "TX")), aes(x=infer_p, y=Coverage, label=Abb), nudge_y=-.04, size=7)+
   # x = y line
   geom_abline(linetype="dashed", color="grey30")+
   # set limits, labels, and theme
