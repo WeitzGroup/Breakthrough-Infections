@@ -186,4 +186,4 @@ assortativity_estim.R -> phi_estimates.csv
 ## Citation
 
 Harris MJ, Arani A, Goel T, Zhang K, Beckett SJ, Lo NC, Dushoff J, Weitz JS. 
-"Anticipating and Interpreting Breakthrough Infections Amid Expanded Vaccine Refusal"
+"Interpreting Breakthrough Infections Given Assortative Mixing of Partially Vaccinated Populations"
