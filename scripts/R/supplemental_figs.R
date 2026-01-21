@@ -193,13 +193,46 @@ hatp_df <- ode_df %>%
   select(phi, p_hat)
 
 # Compute p_c (critical coverage for disease elimination) for each phi
-# p_c is the minimum coverage where total incidence drops below threshold
+# Use interpolation to find precise crossing point where total incidence = 1
+compute_pc_interpolated <- function(df_phi) {
+  df_phi <- df_phi %>% arrange(p)
+  total_inc <- df_phi$annual_CU + df_phi$annual_CV
+  
+  # Check if incidence ever drops below 1 in simulated range
+  if (min(total_inc) >= 1) {
+    # Incidence never drops below 1 in simulated range
+    # Interpolate between last simulated point and p=1 (where incidence=0)
+    last_p <- max(df_phi$p)
+    last_inc <- total_inc[which.max(df_phi$p)]
+    if (last_inc > 1 && last_p < 1) {
+      # Linear interpolation: find p where incidence crosses 1
+      # At p=1, incidence=0; at last_p, incidence=last_inc
+      # Solve: 1 = last_inc + (0 - last_inc) * (p_c - last_p) / (1 - last_p)
+      p_c <- last_p + (1 - last_inc) / (0 - last_inc) * (1 - last_p)
+      return(p_c)
+    }
+    return(NA)  # Truly never crosses 1
+  }
+  
+  # Find first crossing point within simulated range
+  idx <- which(total_inc < 1)[1]
+  if (idx == 1) return(df_phi$p[1])
+  
+  # Linear interpolation between adjacent points where crossing occurs
+  p1 <- df_phi$p[idx - 1]
+  p2 <- df_phi$p[idx]
+  inc1 <- total_inc[idx - 1]
+  inc2 <- total_inc[idx]
+  
+  # Solve: 1 = inc1 + (inc2 - inc1) * (p_c - p1) / (p2 - p1)
+  p_c <- p1 + (1 - inc1) / (inc2 - inc1) * (p2 - p1)
+  return(p_c)
+}
+
 pc_df <- ode_df %>%
-  filter(annual_CU + annual_CV < 1) %>%  # threshold for elimination
   group_by(phi) %>%
-  slice_min(p) %>%
-  rename(p_c = p) %>%
-  select(phi, p_c)
+  group_modify(~ data.frame(p_c = compute_pc_interpolated(.x))) %>%
+  ungroup()
 
 # Combine p_hat and p_c
 thresholds_df <- hatp_df %>%
@@ -216,41 +249,46 @@ p_hat_mean <- thresholds_df %>% filter(phi == phi_mean_matched) %>% pull(p_hat)
 p_hat_lower <- thresholds_df %>% filter(phi == phi_lower_matched) %>% pull(p_hat)
 p_hat_upper <- thresholds_df %>% filter(phi == phi_upper_matched) %>% pull(p_hat)
 
-# p_c: Use phi=0 baseline (disease elimination not achievable at higher phi)
+# Extract p_c values (now computed via interpolation)
 p_c_baseline <- thresholds_df %>% filter(phi == 0) %>% pull(p_c)
-
-# Check if p_c exists at mean phi (will likely be NA or 1)
 p_c_at_mean <- thresholds_df %>% filter(phi == phi_mean_matched) %>% pull(p_c)
+p_c_at_lower <- thresholds_df %>% filter(phi == phi_lower_matched) %>% pull(p_c)
+p_c_at_upper <- thresholds_df %>% filter(phi == phi_upper_matched) %>% pull(p_c)
 
 cat("\n========================================\n")
-cat("Extracted threshold values from ODE output:\n")
+cat("Extracted threshold values from ODE output (p_c via interpolation):\n")
 cat(sprintf("  p_hat at phi=%.2f (mean):  %.3f\n", phi_mean_matched, p_hat_mean))
 cat(sprintf("  p_hat at phi=%.2f (lower): %.3f\n", phi_lower_matched, p_hat_lower))
 cat(sprintf("  p_hat at phi=%.2f (upper): %.3f\n", phi_upper_matched, p_hat_upper))
-cat(sprintf("  p_c at phi=0 (baseline):   %.3f\n", p_c_baseline))
-cat(sprintf("  p_c at phi=%.2f (mean):    %s\n", phi_mean_matched, 
-            ifelse(is.na(p_c_at_mean) | p_c_at_mean >= 1, "N/A (disease persists)", sprintf("%.3f", p_c_at_mean))))
+cat(sprintf("  p_c at phi=0 (baseline):   %.4f\n", p_c_baseline))
+cat(sprintf("  p_c at phi=%.2f (mean):    %.4f\n", phi_mean_matched, p_c_at_mean))
+cat(sprintf("  p_c at phi=%.2f (lower):   %.4f\n", phi_lower_matched, p_c_at_lower))
+cat(sprintf("  p_c at phi=%.2f (upper):   %.4f\n", phi_upper_matched, p_c_at_upper))
 cat("========================================\n")
 
-# Save threshold values
+# Save threshold values (now with interpolated p_c for all phi values)
 threshold_estimates <- data.frame(
   description = c("phi=0 baseline", "phi_mean", "phi_lower", "phi_upper"),
   phi = c(0, phi_mean_matched, phi_lower_matched, phi_upper_matched),
   p_hat = c(thresholds_df %>% filter(phi == 0) %>% pull(p_hat), p_hat_mean, p_hat_lower, p_hat_upper),
-  p_c = c(p_c_baseline, p_c_at_mean, NA, NA)
+  p_c = c(p_c_baseline, p_c_at_mean, p_c_at_lower, p_c_at_upper)
 )
 write.csv(threshold_estimates, file = "../../output/tables/threshold_estimates.csv", row.names = FALSE)
 cat("\nSaved threshold estimates to: ../../output/tables/threshold_estimates.csv\n")
 
+# Also save full thresholds_df with all phi values
+write.csv(thresholds_df, file = "../../output/tables/thresholds_all_phi.csv", row.names = FALSE)
+cat("Saved full thresholds table to: ../../output/tables/thresholds_all_phi.csv\n")
+
 # ========================================
 # Figure 5: County map with data-driven thresholds
-# Use p_hat at mean phi (from ODE), p_c at phi=0 (baseline)
+# Use p_hat and p_c at mean estimated phi (both from interpolated ODE output)
 # ========================================
 p_hat_map <- round(p_hat_mean, 3)
-p_c_map <- round(p_c_baseline, 3)
+p_c_map <- round(p_c_at_mean, 4)  # Use 4 decimal places for p_c (very close to 1)
 
-cat(sprintf("\nFor county map: p_hat = %.3f (at phi=%.2f), p_c = %.3f (baseline at phi=0)\n", 
-            p_hat_map, phi_mean_matched, p_c_map))
+cat(sprintf("\nFor county map: p_hat = %.3f, p_c = %.4f (both at phi=%.2f)\n", 
+            p_hat_map, p_c_map, phi_mean_matched))
 
 # read in csv of county-level MMR vaccine coverage
 pdf("../../output/figures/county_map.pdf", height=10, width=8)
@@ -317,7 +355,7 @@ n_below_phat <- read.csv("../../data/input/mmr_data_us_counties.csv") %>%
 
 cat("\n========================================\n")
 cat("County counts by coverage category:\n")
-cat(sprintf("  p > p_c (%.3f):           %d counties\n", p_c_map, n_above_pc))
+cat(sprintf("  p > p_c (%.4f):           %d counties\n", p_c_map, n_above_pc))
 cat(sprintf("  p_hat < p <= p_c:         %d counties\n", n_between))
 cat(sprintf("  p <= p_hat (%.3f):        %d counties\n", p_hat_map, n_below_phat))
 cat("========================================\n")
