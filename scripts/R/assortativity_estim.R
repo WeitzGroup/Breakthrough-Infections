@@ -336,7 +336,7 @@ assort_df_plot <- data.frame("state"=c("MI","ND","UT","SC"),
   right_join(assort_df) %>%
   mutate(state_shape = ifelse(is.na(state_shape), 1, state_shape),
          # set colors (black for states included in Figures 1 and 2 with 2025 outbreak data)
-         state_color = ifelse(state %in% c("MI","ND","UT","SC"),"black",  "grey50"))
+         state_color = ifelse(state %in% c("MI","ND","UT","SC"),"black",  "grey70"))
 
 # evaluate trends since 2019
 assort_df_plot %<>%
@@ -391,7 +391,7 @@ dev.off()
 assort_hist <- read.csv("../../output/tables/estim_assort_df.csv") %>%
   filter(year >= 2019) %>%
   # color darker if in outbreak analysis
-  mutate(state_color = ifelse(state %in% c("MI","ND","UT","SC"),"black",  "grey50")) %>%
+  mutate(state_color = ifelse(state %in% c("MI","ND","UT","SC"),"black",  "grey70")) %>%
   group_by(state) 
 
 pdf("../../output/figures/fig3.pdf", height=8, width=8)
@@ -400,7 +400,7 @@ print(assort_hist %>%
   geom_density_ridges(aes(x=bootstrap_phi,
                                     y=reorder(state, estim_phi), 
                                     fill=state_color),
-                      color=NA, alpha=.5)+
+                      color=NA, alpha=1, scale=1)+
   scale_fill_identity()+
   theme_classic(base_size=20)+
   scale_x_continuous(limits=c(0, 1), breaks=seq(0, 1, by=.1))+

@@ -328,6 +328,8 @@ map2 <- ggplot()+
   # dotted lines show p_hat range for phi_lower and phi_upper
   geom_segment(aes(x=p_hat_lower, y=0, yend=400), linetype="dotted", alpha=0.7)+
   geom_segment(aes(x=p_hat_upper, y=0, yend=400), linetype="dotted", alpha=0.7)+
+  geom_segment(aes(x=p_c_at_lower, y=0, yend=400), linetype="dotted", alpha=0.7)+
+  geom_segment(aes(x=p_c_at_upper, y=0, yend=400), linetype="dotted", alpha=0.7)+
   scale_x_continuous(expand = expansion(mult = c(0, .1)),
                      breaks=seq(from=0, to=1, by=.1))+
   scale_y_continuous(limits=c(0, 650),expand = expansion(mult = c(0, 0)))+
