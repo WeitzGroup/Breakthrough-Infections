@@ -356,9 +356,19 @@ n_below_phat <- read.csv("../../data/input/mmr_data_us_counties.csv") %>%
   filter(SY2022_23 <= p_hat_map) %>%
   nrow()
 
+n_below_phat_lower <- read.csv("../../data/input/mmr_data_us_counties.csv") %>% 
+  filter(SY2022_23 <= p_hat_lower) %>%
+  nrow()
+
+n_below_phat_upper <- read.csv("../../data/input/mmr_data_us_counties.csv") %>% 
+  filter(SY2022_23 <= p_hat_upper) %>%
+  nrow()
+
 cat("\n========================================\n")
 cat("County counts by coverage category:\n")
 cat(sprintf("  p > p_c (%.4f):           %d counties\n", p_c_map, n_above_pc))
 cat(sprintf("  p_hat < p <= p_c:         %d counties\n", n_between))
 cat(sprintf("  p <= p_hat (%.3f):        %d counties\n", p_hat_map, n_below_phat))
+cat(sprintf("  p <= p_hat_lower (%.3f):        %d counties\n", p_hat_lower, n_below_phat_lower))
+cat(sprintf("  p <= p_hat_upper (%.3f):        %d counties\n", p_hat_upper, n_below_phat_upper))
 cat("========================================\n")
