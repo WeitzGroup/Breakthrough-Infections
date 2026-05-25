@@ -44,10 +44,90 @@ if (!dir.exists("../../output/tables")) {
   dir.create("../../output/tables", recursive = TRUE)
 }
 
+
+# read in and transform the outbreak data
+outbreak_df <- data.frame(State = state.name, Abb = state.abb) %>%
+  right_join(read.csv("../../data/input/recent-outbreaks.csv")) %>%
+  # if unknown and unvaccinated are not reported separately, assume half of combined category are unvaccinated
+  mutate(Unknown = ifelse(is.na(Unknown), .5*Unknown.or.unvaccinated, Unknown),
+         Unvaccinated = ifelse(is.na(Unvaccinated), .5*Unknown.or.unvaccinated, Unvaccinated)) %>%
+  mutate(fv_mid = At.least.one.dose/(At.least.one.dose+Unvaccinated)) %>%
+  # uncertainty: add upper and lower bound based on assumption of vaccination rate in known vs unknown populations
+  mutate(fv_lower = (At.least.one.dose+fv_mid/3*Unknown)/(Unknown.or.unvaccinated+At.least.one.dose),
+         fv_upper = (At.least.one.dose+fv_mid*3*Unknown)/(Unknown.or.unvaccinated+At.least.one.dose)) %>%
+  rename(Coverage = State.Coverage) %>%
+  mutate(Name = paste0(County, ", ", Abb))
+
+
+# read in simulation output
+df <- read.csv("../../data/generated/ode_out.csv") %>%
+  data.frame() %>%
+  rename(p = coverage,
+         annual_CU = incidence_U,
+         annual_CV = incidence_V,
+         phi = assortativity) %>%
+  # Round phi values to 2 decimal places for cleaner legend display
+  mutate(phi = round(phi, 2)) %>%
+  mutate(Underreported = "Neither")
+
+df %<>% 
+  rbind(df %>% 
+          mutate(IU = (1/2)*IU) %>%
+          mutate(Underreported="Unvaccinated Underreporting")) %>%
+  rbind(rbind(df %>% 
+                  mutate(IV = (1/2)*IV) %>%
+                  mutate(Underreported = "Breakthrough Underreporting"))) %>%
+  mutate(fV = IV/(IU+IV)) %>%
+  filter(IU+IV >= 1)
+
+# solve for HIT values (will use to draw caps on p vs f_V plot)
+df_HIT <- df %>%
+  filter(IU+IV >= 1) %>%
+  group_by(phi) %>%
+  slice_max(p) %>%
+  rename(pHIT = p) %>%
+  rename(fvHIT = fV) 
+
+# Underreporting sensitivity
+pdf("../../output/figures/supp-underrep.pdf", height=6, width=10)
+print(ggplot(outbreak_df)+
+        #predict relationship between p and fV by phi
+        geom_line(data = df %>% filter(phi %in% c(0,.3, .6, .9, .98) & Underreported != "Neither"), aes(x=p, y=fV, color=as.factor(phi)))+
+        facet_wrap(~Underreported)+
+        # caps at herd immunity
+        geom_point(data = df_HIT %>% filter(phi %in% c(0,.3, .6, .9, .98) & Underreported != "Neither"), aes(x=pHIT, y=fvHIT, color=as.factor(phi)))+
+        # outbreak data as points
+        geom_linerange(aes(x=Coverage, ymin=fv_lower, ymax=fv_upper))+
+        geom_point(aes(x=Coverage, y=fv_mid, shape=Abb), size=2)+
+        # state labels
+        geom_text(data=outbreak_df %>% filter(Abb %in% c("TX", "NM")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02, size=3)+
+        geom_text(data=outbreak_df %>% filter(!Abb %in% c("TX", "NM", "SC", "MI")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x = -.06, nudge_y=.006, size=3)+
+        geom_text(data=outbreak_df %>% filter(Abb %in% c("SC", "MI")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02, nudge_y=.006, size=3)+
+        # limits, labels, and theme
+        scale_x_continuous(limits=range(c(0,1.1)), expand=c(0,0))+
+        #scale_y_continuous(limits=range(c(-.02,.43)), expand=c(0,0))+
+        scale_color_viridis_d()+
+        theme_classic(base_size=20)+
+        guides(color = guide_legend(override.aes=list(shape=NA),
+                                    expression(paste("Assortativity (", italic(phi), ")")),
+                                    title.position = "top"),
+               shape="none")+
+        theme(legend.position = "bottom", 
+              legend.text = element_text(size = 12),
+              legend.title = element_text(size = 15, hjust=.5))+
+        ylab(expression(paste("Breakthrough Fraction (", italic(f[V]), ")")))+
+        xlab(expression(paste("Vaccine coverage (", italic(p),")")))+
+        # manually set shapes for different states
+        scale_shape_manual(values=c("MI"=15, "ND"=19,"UT"=17, "TX"=18, "NM"=8, 
+                                    "AZ"=7, "SC"=18)))
+dev.off()
+
+
 # read in simulation output for different disease parameters
 diffdis_df <- read.csv("../../data/generated/diffdisease-ode-output.csv") %>%
   # Round phi values to 2 decimal places for cleaner legend display
-  mutate(assortativity = round(assortativity, 2)) 
+  mutate(assortativity = round(assortativity, 2))  %>%
+  filter(assortativity %in% c(0, .6, .9, .98))
 
 # supplemental figure - fV with different disease parameters
 pdf("../../output/figures/supp-fv.pdf", height=10, width=10)
