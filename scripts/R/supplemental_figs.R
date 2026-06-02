@@ -30,6 +30,7 @@ require(magrittr)
 require(tidyverse)
 require(cowplot)
 require(usmap)
+require(metR)
 require(latex2exp)
 library(ggrepel)
 library(scales)
@@ -60,25 +61,57 @@ outbreak_df <- data.frame(State = state.name, Abb = state.abb) %>%
 
 
 # read in simulation output
-df <- read.csv("../../data/generated/ode_out.csv") %>%
+df <- read.csv("../../data/generated/manyphi-ode-output.csv") %>%
   data.frame() %>%
   rename(p = coverage,
          annual_CU = incidence_U,
-         annual_CV = incidence_V,
-         phi = assortativity) %>%
+         annual_CV = incidence_V) %>%
   # Round phi values to 2 decimal places for cleaner legend display
-  mutate(phi = round(phi, 2)) %>%
-  mutate(Underreported = "Neither")
+  mutate(phi = round(phi, 2)) 
 
-df %<>% 
-  rbind(df %>% 
-          mutate(IU = (1/2)*IU) %>%
-          mutate(Underreported="Unvaccinated Underreporting")) %>%
-  rbind(rbind(df %>% 
-                  mutate(IV = (1/2)*IV) %>%
-                  mutate(Underreported = "Breakthrough Underreporting"))) %>%
+
+reporting_fact <- seq(1, 3, by=.1)
+reporting_fact <- c(reporting_fact, rev(1/reporting_fact[-1]))
+
+# all combos of reporting_fact, p, phi
+underrep_df <- expand.grid(reporting_fact = reporting_fact,
+            p = unique(df$p),
+            phi = unique(df$phi)) %>%
+  left_join(df) %>%
+  mutate(IU = IU*reporting_fact) %>%
   mutate(fV = IV/(IU+IV)) %>%
-  filter(IU+IV >= 1)
+  filter(IU+IV >= 1) 
+
+underrep_df_labs <- underrep_df %>%
+  mutate(reporting_fact_lab = ifelse(reporting_fact>=1, as.character(reporting_fact), paste0("1/", 1/reporting_fact))) %>%
+  filter(reporting_fact %in% c(1/3, 1/2, 1, 2, 3))
+
+pdf("../../output/figures/supp-underrep.pdf", height=6, width=10)
+underrep_df %>%
+  filter(p %in% c(.8, .9, .95)) %>%
+  ggplot() + 
+  geom_tile(aes(x=phi, y=as.factor(reporting_fact), fill=fV))+
+  geom_contour(aes(x=phi, y=as.numeric(as.factor(reporting_fact)), z = fV), color = "white", breaks = c(.01, .05, .1, .2, .3, .4))+
+  geom_text_contour(aes(x=phi, y=as.numeric(as.factor(reporting_fact)), z = fV), 
+                    stroke = 0.2, breaks = c(.01, .05, .1, .2, .3, .4),
+                    skip=FALSE)+
+  ylab("Reporting Bias \n(Toward Unvaccinated)")+
+  xlab(expression(paste("Assortativity (", italic(phi), ")")))+
+  theme_classic(base_size=20)+
+  theme(legend.position="bottom",
+        legend.title = element_text(hjust=.5))+
+  scale_y_discrete(breaks=as.factor(underrep_df_labs$reporting_fact),
+                     labels=underrep_df_labs$reporting_fact_lab,
+                   expand=c(0,0))+
+  scale_fill_viridis_c(expression(paste("Breakthrough Fraction (", italic(f[V]), ")")))+
+  scale_x_continuous(expand = c(0, 0))+
+  guides(fill = guide_colorbar(
+    title.position = "top",
+    barwidth = unit(6, "cm"),
+    barheight = unit(0.4, "cm")
+  ))+
+  facet_wrap(~p,  labeller = labeller(p = function(x) paste0("p = ", x)))
+dev.off()
 
 # solve for HIT values (will use to draw caps on p vs f_V plot)
 df_HIT <- df %>%
