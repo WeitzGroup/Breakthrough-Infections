@@ -16,7 +16,8 @@ Breakthrough-Infections/
 │   └── generated/                  # ODE simulation outputs
 │       ├── ode_out.csv
 │       ├── diffdisease-ode-output.csv
-│       └── lowphi-*.csv
+│       ├── lowphi-*.csv
+│       └── manyphi-ode-output.csv
 ├── scripts/
 │   ├── R/                          # R analysis scripts
 │   │   ├── install_packages.R      # Package installation
@@ -28,12 +29,14 @@ Breakthrough-Infections/
 │       ├── main.m                  # Main ODE simulation -> ode_out.csv
 │       ├── diffdisease.m           # Different disease params -> diffdisease-ode-output.csv
 │       ├── lowphi.m                # Low assortativity sims -> lowphi-*.csv
+│       ├── manyphi.m               # Sims across multiple phi values for heatmap -> manyphi-ode-output.csv
 │       ├── model_parameters.m
 │       └── SIR_vaccinated_assortativity.m
 ├── output/
 │   ├── figures/                    # Generated PDF figures
 │   └── tables/                     # Generated CSV/TXT tables (NOT INCLUDED)
 ├── notebooks/
+│   ├── underrep-heatmap.ipynb                  
 │   └── TwoDoseModel.ipynb
 └── README.md
 ```
@@ -148,15 +151,17 @@ cd scripts/matlab
 main        % -> data/generated/ode_out.csv
 diffdisease % -> data/generated/diffdisease-ode-output.csv
 lowphi      % -> data/generated/lowphi-ode-output.csv, lowphi-inset-ode-output.csv
+manyphi     % -> data/generated/manyphi-ode-output.csv
 ```
 (Timestamped backups are also saved in scripts/matlab/ for reproducibility)
 
-### Step 3: Generate Figures (R)
+### Step 3: Generate Figures (R, Python)
 ```r
 setwd("scripts/R")
 source("main_ode_plots.R")
 source("supplemental_figs.R")
 source("2-dose.R")
+
 ```
 
 ---
@@ -166,19 +171,19 @@ source("2-dose.R")
 ```
 assortativity_estim.R -> phi_estimates.csv
                               |
-        +---------------------+---------------------+
-        v                     v                     v
-    main.m              diffdisease.m          lowphi.m
-        |                     |                     |
-        v                     v                     v
-  ode_out.csv     diffdisease-ode-output.csv   lowphi-*.csv
-        |                     |                     |
-        +---------------------+---------------------+
+        +---------------------+---------------------+---------------------+
+        v                     v                     v                     v
+    main.m              diffdisease.m          lowphi.m              manyphi.m
+        |                     |                     |                     |
+        v                     v                     v                     v
+  ode_out.csv     diffdisease-ode-output.csv   lowphi-*.csv     manyphi-ode-output.csv
+        |                     |                     |                     |
+        +---------------------+---------------------+---------------------+ 
                               v
-              main_ode_plots.R + supplemental_figs.R
                               |
                               v
                       output/figures/*.pdf
+
 ```
 
 ---
