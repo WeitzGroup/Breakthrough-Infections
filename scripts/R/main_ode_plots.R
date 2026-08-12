@@ -61,7 +61,7 @@ outbreak_df <- data.frame(State = state.name, Abb = state.abb) %>%
   # uncertainty: add upper and lower bound based on assumption of vaccination rate in known vs unknown populations
   mutate(fv_lower = (At.least.one.dose+fv_mid/3*Unknown)/(Unknown.or.unvaccinated+At.least.one.dose),
          fv_upper = (At.least.one.dose+fv_mid*3*Unknown)/(Unknown.or.unvaccinated+At.least.one.dose)) %>%
-  rename(Coverage = State.Coverage) %>%
+  rename(Coverage = County.Coverage) %>%
   mutate(Name = paste0(County, ", ", Abb))
 
 # read in simulation output
@@ -152,9 +152,8 @@ print(ggplot(outbreak_df)+
   geom_linerange(aes(x=Coverage, ymin=fv_lower, ymax=fv_upper))+
   geom_point(aes(x=Coverage, y=fv_mid, shape=Abb), size=3)+
   # state labels
-  geom_text(data=outbreak_df %>% filter(Abb %in% c("TX", "NM")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02)+
-  geom_text(data=outbreak_df %>% filter(!Abb %in% c("TX", "NM", "SC")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x = -.06, nudge_y=.006)+
-  geom_text(data=outbreak_df %>% filter(Abb %in% c("SC")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.01, nudge_y=.006)+
+  geom_text(data=outbreak_df %>% filter(!Abb %in% c("MI", "TX")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02)+
+  geom_text(data=outbreak_df %>% filter(Abb %in% c("MI", "TX")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02, nudge_y=.01)+
   # limits, labels, and theme
   scale_x_continuous(limits=range(c(0,1.1)), expand=c(0,0))+
   scale_y_continuous(limits=range(c(-.02,.43)), expand=c(0,0))+
