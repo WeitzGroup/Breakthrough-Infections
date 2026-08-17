@@ -126,7 +126,7 @@ outbreak_df %<>%
   ungroup()
 
 
-pdf("../../output/figures/fig2-county.pdf", height=6, width=6)
+pdf("../../output/figures/fig2-county.pdf", height=6, width=12)
 county_a <- ggplot(outbreak_df)+
         #predict relationship between p and fV by phi
         geom_line(data = df %>% filter(phi %in% c(0,.3, .6, .9, .98)), aes(x=p, y=fV, color=as.factor(phi)))+
@@ -156,17 +156,20 @@ county_a <- ggplot(outbreak_df)+
         # manually set shapes for different states
         scale_shape_manual(values=c("MI"=15, "ND"=19,"UT"=17, "TX"=18, "NM"=8, 
                                     "AZ"=7, "SC"=18))
-ggplot(outbreak_df) + 
+county_b <- ggplot(outbreak_df) + 
               geom_errorbar(aes(x=estim_phi_state_mid, ymin = estim_phi_county_lower, ymax=estim_phi_county_upper), color="gray", width=0)+
               geom_errorbarh(aes(y=estim_phi_county_mid, xmin = estim_phi_state_lower, xmax=estim_phi_state_upper), color="gray", width=0)+
               geom_point(aes(x=estim_phi_state_mid, y=estim_phi_county_mid, shape=Abb))+
               geom_abline(aes(slope=1, intercept=0), color="red", linetype="dotted")+
-              geom_text(aes(x=estim_phi_state_mid, y=estim_phi_county_mid, label=Abb), hjust=0, nudge_x=-.07, nudge_y=.02)+
-              xlab("Estimated assortativity (from state-level coverage)")+
-              ylab("Estimated assortativity (from county-level coverage)")+
+              geom_text(data=outbreak_df %>% filter(Abb != "AZ"), aes(x=estim_phi_state_mid, y=estim_phi_county_mid, label=Abb), hjust=0, nudge_x=-.07, nudge_y=.04)+
+              geom_text(data=outbreak_df %>% filter(Abb == "AZ"), aes(x=estim_phi_state_mid, y=estim_phi_county_mid, label=Abb), hjust=0, nudge_x=-.07, nudge_y=-.05)+
+              xlab("Inferred assortativity \n(from state-level coverage)")+
+              ylab("Inferred assortativity \n(from county-level coverage)")+
            theme_classic(base_size=20)+
            scale_shape_manual(values=c("MI"=15, "ND"=19,"UT"=17, "TX"=18, "NM"=8, 
                                                                           "AZ"=7, "SC"=18))+
+          scale_x_continuous(limits=range(c(0,1.1)), expand=c(0,0))+
+          scale_y_continuous(limits=range(c(0, 1.1)), expand=c(0,0))+
           theme(legend.position="none")
   
 print(plot_grid(county_a, county_b, labels="AUTO", label_size=20, hjust=-1, label_x=-.03))
