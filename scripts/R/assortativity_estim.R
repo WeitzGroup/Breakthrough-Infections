@@ -374,7 +374,7 @@ print(ggplot(assort_df_plot)+
   geom_segment(aes(x=year, y=lower_phi, yend=upper_phi, color=state_color))+
   # theme, labels, legend
   theme_bw(base_size=20)+
-  ylab(expression(paste("Estimated Assortativity (", italic(tilde(phi)), ")")))+
+  ylab(expression(paste("Estimated School-Based Assortativity (", italic(tilde(phi)), ")")))+
   theme(panel.grid.major = element_line(color = "grey50", linetype = "dotted", linewidth = 0.3),
         panel.grid.minor = element_line(color = "grey90", linetype = "dotted", linewidth = 0.2),
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
@@ -405,7 +405,7 @@ print(assort_hist %>%
   theme_classic(base_size=20)+
   scale_x_continuous(limits=c(0, 1), breaks=seq(0, 1, by=.1))+
   ylab("State")+
-  xlab(expression(paste("Estimated Assortativity (", italic(tilde(phi)), ")"))))
+  xlab(expression(paste("Estimated School-Based Assortativity (", italic(tilde(phi)), ")"))))
 dev.off()
 
 # get summary statistics for main text and store as constants

@@ -17,6 +17,7 @@ Breakthrough-Infections/
 │       ├── ode_out.csv
 │       ├── diffdisease-ode-output.csv
 │       ├── lowphi-*.csv
+│       ├── countyphi-ode-output.csv
 │       └── manyphi-ode-output.csv
 ├── scripts/
 │   ├── R/                          # R analysis scripts
@@ -30,6 +31,7 @@ Breakthrough-Infections/
 │       ├── diffdisease.m           # Different disease params -> diffdisease-ode-output.csv
 │       ├── lowphi.m                # Low assortativity sims -> lowphi-*.csv
 │       ├── manyphi.m               # Sims across multiple phi values for heatmap -> manyphi-ode-output.csv
+│       ├── countyphi.m             # Sims across multiple phi values with county-level coverage to extrapolate county-level phi estimates
 │       ├── model_parameters.m
 │       └── SIR_vaccinated_assortativity.m
 ├── output/
@@ -152,6 +154,7 @@ main        % -> data/generated/ode_out.csv
 diffdisease % -> data/generated/diffdisease-ode-output.csv
 lowphi      % -> data/generated/lowphi-ode-output.csv, lowphi-inset-ode-output.csv
 manyphi     % -> data/generated/manyphi-ode-output.csv
+countyphi   % -> data/generated/countyphi-ode-output.csv
 ```
 (Timestamped backups are also saved in scripts/matlab/ for reproducibility)
 
@@ -168,18 +171,16 @@ source("2-dose.R")
 
 ## Data Flow
 
-```
 assortativity_estim.R -> phi_estimates.csv
                               |
-        +---------------------+---------------------+---------------------+
-        v                     v                     v                     v
-    main.m              diffdisease.m          lowphi.m              manyphi.m
-        |                     |                     |                     |
-        v                     v                     v                     v
-  ode_out.csv     diffdisease-ode-output.csv   lowphi-*.csv     manyphi-ode-output.csv
-        |                     |                     |                     |
-        +---------------------+---------------------+---------------------+ 
-                              v
+        +---------------------+---------------------+---------------------+---------------------+
+        v                     v                     v                     v                     v
+    main.m              diffdisease.m          lowphi.m              manyphi.m             countyphi.m
+        |                     |                     |                     |                     |
+        v                     v                     v                     v                     v
+  ode_out.csv     diffdisease-ode-output.csv   lowphi-*.csv     manyphi-ode-output.csv   countyphi-ode-output.csv
+        |                     |                     |                     |                     |
+        +---------------------+---------------------+---------------------+---------------------+
                               |
                               v
                       output/figures/*.pdf

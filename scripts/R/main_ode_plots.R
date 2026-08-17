@@ -175,10 +175,12 @@ print(ggplot(outbreak_df)+
                               "AZ"=7, "SC"=18)))
 dev.off()
 
+
 # identify \hat{p} to indicate as points on fig 4
 df_peak <- df %>% 
             group_by(phi) %>%
             slice_max(annual_CV) 
+
 
 # figure 4
 pdf("../../output/figures/fig4.pdf", height=7, width=14)

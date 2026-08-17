@@ -60,6 +60,16 @@ outbreak_df <- data.frame(State = state.name, Abb = state.abb) %>%
   mutate(Name = paste0(County, ", ", Abb))
 
 
+# read in simulation output
+df <- read.csv("../../data/generated/ode_out.csv") %>%
+  data.frame() %>%
+  rename(p = coverage,
+         annual_CU = incidence_U,
+         annual_CV = incidence_V,
+         phi = assortativity) %>%
+  # Round phi values to 2 decimal places for cleaner legend display
+  mutate(phi = round(phi, 2)) 
+
 # solve for HIT values (will use to draw caps on p vs f_V plot)
 df_HIT <- df %>%
   filter(IU+IV >= 1) %>%
@@ -68,46 +78,102 @@ df_HIT <- df %>%
   rename(pHIT = p) %>%
   rename(fvHIT = fV) 
 
-# Underreporting sensitivity
-pdf("../../output/figures/supp-underrep.pdf", height=6, width=10)
-print(ggplot(outbreak_df)+
+# read in simulation output for different disease parameters
+diffdis_df <- read.csv("../../data/generated/diffdisease-ode-output.csv") %>%
+  # Round phi values to 2 decimal places for cleaner legend display
+  mutate(assortativity = round(assortativity, 2))  %>%
+  filter(assortativity %in% c(0, .6, .9, .98))
+
+
+# supplemental figure - fig2 with county-level data
+
+# interpolate the estimated phi based on county- and state-level coverage
+many_phi_df <- read.csv("../../data/generated/manyphi-ode-output.csv")
+county_phi_df <- read.csv("../../data/generated/countyphi-ode-output.csv")
+
+estimate_phi <- function(scale, fv, p){
+  
+  
+  if(scale=="state"){
+    this_df <- many_phi_df 
+    
+  }
+  
+  else{
+    this_df <- county_phi_df
+  }
+  
+  # identify coverage that is closest to the reported value (given rounding)
+  coverage_vals <- unique(this_df$coverage)
+  this_coverage <- coverage_vals[which.min(abs(coverage_vals-p))]
+  this_coverage_df <- this_df %>%
+                        filter(coverage == this_coverage)
+  
+  est_phi <-approx(this_coverage_df$fV, this_coverage_df$phi, xout = fv, method = "linear")$y
+  
+  return(est_phi)
+
+}
+
+outbreak_df %<>% 
+  rowwise() %>%
+  mutate(estim_phi_state_mid = estimate_phi("state", fv_mid, Coverage),
+         estim_phi_state_lower = estimate_phi("state", fv_lower, Coverage),
+         estim_phi_state_upper = estimate_phi("state", fv_upper, Coverage),
+         estim_phi_county_mid = estimate_phi("county", fv_mid, County.Coverage),
+         estim_phi_county_lower = estimate_phi("county", fv_lower, County.Coverage),
+         estim_phi_county_upper = estimate_phi("county", fv_upper, County.Coverage)) %>%
+  ungroup()
+
+
+pdf("../../output/figures/fig2-county.pdf", height=6, width=6)
+county_a <- ggplot(outbreak_df)+
         #predict relationship between p and fV by phi
-        geom_line(data = df %>% filter(phi %in% c(0,.3, .6, .9, .98) & Underreported != "Neither"), aes(x=p, y=fV, color=as.factor(phi)))+
-        facet_wrap(~Underreported)+
+        geom_line(data = df %>% filter(phi %in% c(0,.3, .6, .9, .98)), aes(x=p, y=fV, color=as.factor(phi)))+
         # caps at herd immunity
-        geom_point(data = df_HIT %>% filter(phi %in% c(0,.3, .6, .9, .98) & Underreported != "Neither"), aes(x=pHIT, y=fvHIT, color=as.factor(phi)))+
+        geom_point(data = df_HIT %>% filter(phi %in% c(0,.3, .6, .9, .98)), aes(x=pHIT, y=fvHIT, color=as.factor(phi)))+
         # outbreak data as points
-        geom_linerange(aes(x=Coverage, ymin=fv_lower, ymax=fv_upper))+
-        geom_point(aes(x=Coverage, y=fv_mid, shape=Abb), size=2)+
+        geom_linerange(aes(x=County.Coverage, ymin=fv_lower, ymax=fv_upper))+
+        geom_point(aes(x=County.Coverage, y=fv_mid, shape=Abb), size=3)+
         # state labels
-        geom_text(data=outbreak_df %>% filter(Abb %in% c("TX", "NM")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02, size=3)+
-        geom_text(data=outbreak_df %>% filter(!Abb %in% c("TX", "NM", "SC", "MI")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x = -.06, nudge_y=.006, size=3)+
-        geom_text(data=outbreak_df %>% filter(Abb %in% c("SC", "MI")), aes(x=Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02, nudge_y=.006, size=3)+
+        geom_text(data=outbreak_df %>% filter(!Abb %in% c("MI", "TX")), aes(x=County.Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02)+
+        geom_text(data=outbreak_df %>% filter(Abb %in% c("MI", "TX")), aes(x=County.Coverage, y=fv_mid, label=Abb), hjust=0, nudge_x=.02, nudge_y=.01)+
         # limits, labels, and theme
         scale_x_continuous(limits=range(c(0,1.1)), expand=c(0,0))+
-        #scale_y_continuous(limits=range(c(-.02,.43)), expand=c(0,0))+
+        scale_y_continuous(limits=range(c(-.02,.43)), expand=c(0,0))+
         scale_color_viridis_d()+
         theme_classic(base_size=20)+
         guides(color = guide_legend(override.aes=list(shape=NA),
                                     expression(paste("Assortativity (", italic(phi), ")")),
                                     title.position = "top"),
                shape="none")+
-        theme(legend.position = "bottom", 
+        theme(legend.position = c(0.05, 0.9), 
+              legend.justification = c("left", "top"),
               legend.text = element_text(size = 12),
-              legend.title = element_text(size = 15, hjust=.5))+
+              legend.title = element_text(size = 15, hjust=0))+
         ylab(expression(paste("Breakthrough Fraction (", italic(f[V]), ")")))+
-        xlab(expression(paste("Vaccine coverage (", italic(p),")")))+
+        xlab(expression(paste("County-level vaccine coverage (", italic(p),")")))+
         # manually set shapes for different states
         scale_shape_manual(values=c("MI"=15, "ND"=19,"UT"=17, "TX"=18, "NM"=8, 
-                                    "AZ"=7, "SC"=18)))
+                                    "AZ"=7, "SC"=18))
+ggplot(outbreak_df) + 
+              geom_errorbar(aes(x=estim_phi_state_mid, ymin = estim_phi_county_lower, ymax=estim_phi_county_upper), color="gray", width=0)+
+              geom_errorbarh(aes(y=estim_phi_county_mid, xmin = estim_phi_state_lower, xmax=estim_phi_state_upper), color="gray", width=0)+
+              geom_point(aes(x=estim_phi_state_mid, y=estim_phi_county_mid, shape=Abb))+
+              geom_abline(aes(slope=1, intercept=0), color="red", linetype="dotted")+
+              geom_text(aes(x=estim_phi_state_mid, y=estim_phi_county_mid, label=Abb), hjust=0, nudge_x=-.07, nudge_y=.02)+
+              xlab("Estimated assortativity (from state-level coverage)")+
+              ylab("Estimated assortativity (from county-level coverage)")+
+           theme_classic(base_size=20)+
+           scale_shape_manual(values=c("MI"=15, "ND"=19,"UT"=17, "TX"=18, "NM"=8, 
+                                                                          "AZ"=7, "SC"=18))+
+          theme(legend.position="none")
+  
+print(plot_grid(county_a, county_b, labels="AUTO", label_size=20, hjust=-1, label_x=-.03))
 dev.off()
 
 
-# read in simulation output for different disease parameters
-diffdis_df <- read.csv("../../data/generated/diffdisease-ode-output.csv") %>%
-  # Round phi values to 2 decimal places for cleaner legend display
-  mutate(assortativity = round(assortativity, 2))  %>%
-  filter(assortativity %in% c(0, .6, .9, .98))
+
 
 # supplemental figure - fV with different disease parameters
 pdf("../../output/figures/supp-fv.pdf", height=10, width=10)
